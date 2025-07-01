@@ -1,4 +1,3 @@
-#include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
 #include "BSBBusAdapter.h"
 
@@ -12,11 +11,30 @@ void BSBBusAdapter::setup() {
 }
 #define BSB_STARTOFFRAME        0xdc
 
-void BSBBusAdapter::frame_complete(void ) {
-    uint16_t crc=crc16be(this->_buffer.data(), this->_buffer.size(), 0, 0x1021, false, false);
+void BSBBusAdapter::frame_process(void ) {
+	if (!this->frame.crc_valid()) {
 
-    ESP_LOGD(TAG, "Frame complete - len %d crc 0x%04x", this->_buffer.size(), crc);
-    ESP_LOGD(TAG, "Frame: %s", format_hex_pretty(this->_buffer.data(), this->_buffer.size()).c_str());
+		ESP_LOGD(TAG, "Frame crc invalid - len %d", this->frame.buffersize());
+		ESP_LOGD(TAG, "Frame: %s", this->frame.hex().c_str());
+
+		this->frame.clear();
+		return;
+	}
+
+	ESP_LOGD(TAG, "Frame complete - len %d from: %02x to: %02x type: %s Address: %08x",
+			this->frame.buffersize(),
+			this->frame.from(),
+			this->frame.to(),
+			this->frame.messagetypestring(),
+			this->frame.address());
+	ESP_LOGD(TAG, "Frame: %s", this->frame.hex().c_str());
+
+	uint32_t address=frame.address();
+	for(auto r : this->registers)
+		if (r->address == address) {
+			ESP_LOGD(TAG, "Message type: %s", r->name);
+		}
+
 }
 
 void BSBBusAdapter::loop() {
@@ -29,23 +47,21 @@ void BSBBusAdapter::loop() {
 		c^=0xff;
 
 		if (c == BSB_STARTOFFRAME) {
-			this->_buffer.clear();
+			this->frame.clear();
 		}
 
-		this->_buffer.push_back(c);
-
-		if (this->_buffer.size() < 4)
-			continue;
-
-		int framelength=this->_buffer[3];
-
-		if (this->_buffer.size() >= framelength)
-			frame_complete();
+		this->frame.append(c);
+		if (this->frame.complete())
+			frame_process();
 	}
 }
 
 void BSBBusAdapter::dump_config(){
     ESP_LOGCONFIG(TAG, "BSBBusAdapter");
+}
+
+void BSBBusAdapter::add_register(BSBRegister *reg) {
+	registers.push_back(reg);
 }
 
 }  // namespace bsb
