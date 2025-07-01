@@ -24,20 +24,20 @@ My local building in docker.
 esphome.yaml
 ============
 
-  uart:
-    id: bsbuart
-    rx_pin: GPIO16
-    tx_pin: GPIO17
-    parity: ODD
-    stop_bits: 1
-    data_bits: 8
-    baud_rate: 4800
-
-  BSBBusAdapter:
-    uart_id: bsbuart
-
-  external_components:
-    - source:
-        type: git
-        url: https://github.com/flohoff/esphome-bsb
-      components: [BSBBusAdapter]
+    uart:
+      id: bsbuart
+      rx_pin: GPIO16
+      tx_pin: GPIO17
+      parity: ODD
+      stop_bits: 1
+      data_bits: 8
+      baud_rate: 4800
+  
+    BSBBusAdapter:
+      uart_id: bsbuart
+  
+    external_components:
+      - source:
+          type: git
+          url: https://github.com/flohoff/esphome-bsb
+        components: [BSBBusAdapter]
