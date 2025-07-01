@@ -35,6 +35,7 @@ void BSBBusAdapter::frame_process(void ) {
 			ESP_LOGD(TAG, "Message type: %s", r->name);
 		}
 
+	this->frame.clear();
 }
 
 void BSBBusAdapter::loop() {
@@ -60,8 +61,16 @@ void BSBBusAdapter::dump_config(){
     ESP_LOGCONFIG(TAG, "BSBBusAdapter");
 }
 
+void BSBBusAdapter::set_busaddress(uint8_t ba) {
+	busaddress=ba;
+}
+
 void BSBBusAdapter::add_register(BSBRegister *reg) {
 	registers.push_back(reg);
+}
+
+void BSBBusAdapter::add_sensor(BSBRegister *reg) {
+	sensors.push_back(reg);
 }
 
 }  // namespace bsb

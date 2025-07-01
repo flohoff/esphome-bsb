@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <map>
 #include <string>
+#include <vector>
 
 namespace esphome {
 namespace bsb {
@@ -122,7 +123,7 @@ class BSBFrame {
 class BSBRegister {
 	public:
 		uint32_t	address;
-		uint8_t		type;
+		uint8_t		vtype;
 		uint8_t		access;
 		const char	*name;
 
@@ -132,8 +133,8 @@ class BSBRegister {
 		void set_address(uint32_t a) {
 			address=a;
 		}
-		void set_type(uint8_t t) {
-			type=t;
+		void set_vtype(uint8_t t) {
+			vtype=t;
 		}
 		void set_access(uint8_t a) {
 			access=a;
@@ -157,9 +158,13 @@ class BSBBusAdapter : public uart::UARTDevice, public Component {
     void dump_config() override;
     void frame_process(void );
     void add_register(BSBRegister *reg);
+    void add_sensor(BSBRegister *reg);
+    void set_busaddress(uint8_t ba);
   private:
     BSBFrame frame;
+    uint8_t busaddress;
     std::vector<BSBRegister*> registers;
+    std::vector<BSBRegister*> sensors;
 };
 
 }  // namespace bsb
