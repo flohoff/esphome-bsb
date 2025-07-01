@@ -14,13 +14,15 @@ the CRC and logging the frame as Debugging.
     [09:05:53][D][BSBBusAdapter:018]: Frame complete - len 21 crc 0x0000
     [09:05:53][D][BSBBusAdapter:019]: Frame: DC.80.7F.15.02.2F.00.02.11.00.00.FF.FF.FF.FF.FF.FF.00.00.83.90 (21)
 
-== Building
+Building
+========
 
 My local building in docker.
 
     docker run --rm -v "${PWD}":/config -it ghcr.io/esphome/esphome run bsbba.yaml
 
-== esphome.yaml
+esphome.yaml
+============
 
   uart:
     id: bsbuart
