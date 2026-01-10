@@ -21,7 +21,7 @@ namespace bsb {
 			this->set_state_class(sensor::STATE_CLASS_MEASUREMENT);
 			this->set_accuracy_decimals(0);
 			this->set_unit_of_measurement("%");
-		}	
+		}
 	};
 
 	void Sensor::update(void) {
@@ -89,6 +89,8 @@ namespace bsb {
 				LOG_STR_ARG(this->get_component_log_str()),
 				address);
 
+			float num=frame->payload(1);
+			publish_state(num);
 		}
 	}
 }
