@@ -2,13 +2,6 @@
 Minimal proof of concept of a BSB (Boiler Side Bus) Bus Adapter component
 for esphome.
 
-Currently it only comes up - opens the UART and watches for incoming frames. Checking
-the CRC and logging the frame as Debugging.
-
-	[16:25:54][D][BSBBusAdapter:024]: Frame complete - len 11 from: 8a to: 00 type: Query Address: 0d3d0519
-	[16:25:54][D][BSBBusAdapter:030]: Frame: DC.8A.00.0B.06.3D.0D.05.19.4F.8C (11)
-	[16:25:54][D][BSBBusAdapter:035]: Message type: Kesseltemperatur
-
 Building
 ========
 
@@ -19,6 +12,8 @@ My local building in docker.
 esphome.yaml
 ============
 
+Here an example for an Brötje WBS 14E collecting some infos:
+
     uart:
       id: bsbuart
       rx_pin: GPIO16
@@ -28,9 +23,30 @@ esphome.yaml
       data_bits: 8
       baud_rate: 4800
   
-    BSBBusAdapter:
+    bsb:
+      id: bsb0
       uart_id: bsbuart
-  
+      busaddress: 0xe
+
+    binary_sensor:
+      - platform: bsb
+        bsb_id: bsb0
+        name: Brennerstufe 1
+        address: 0x053D09A0
+        vtype: boolonoff
+
+    sensor:
+      - platform: bsb
+        bsb_id: bsb0
+        name: Kesseltemperatur
+        address: 0x0D3D0519
+        vtype: float3-div64-tempC
+      - platform: bsb
+        bsb_id: bsb0
+        name: Aussentemperatur
+        address: 0x053D0521
+        vtype: float3-div64-tempC
+     
     external_components:
       - source:
           type: git
