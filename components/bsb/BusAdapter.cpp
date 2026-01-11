@@ -10,30 +10,65 @@ void BusAdapter::setup() {
 	uart_last_activity=millis();
 }
 
+#define FRAME_MAX_RETRY		3
+#define FRAME_MAX_QUEUE_TIME	300
+#define FRAME_RETRY_TIME	100
+
 void BusAdapter::frame_tx(void ) {
 
 	if (frame_tx_queue.empty())
 		return;
 
-	BSBFrame *frame=frame_tx_queue.front();
-	frame_tx_queue.pop_front();
+	uint32_t now=millis();
 
-	ESP_LOGD(TAG, "Frame complete - len %d from: %02x to: %02x type: %s Address: %08x",
-			this->frame.buffersize(),
+	// waitfree = random(1,20) + 3 + 59;
+	uint32_t delay=(rand()%20) + 3 + 59;
+
+	if (uart_last_activity + delay > now)
+		return;
+
+	ESP_LOGD(TAG, "Frame tx: we have something in queue");
+
+	BSBFrame *frame=frame_tx_queue.front();
+
+	// We delay retrying by FRAME_RETRY_TIME
+	if (frame->retry) {
+		ESP_LOGD(TAG, "Frame tx: check for retry and retry time");
+		if (frame->last_sent_millis + FRAME_RETRY_TIME > millis())
+			return;
+	}
+
+	ESP_LOGD(TAG, "Frame tx: try %d - len %d from: %02x to: %02x type: %s Address: %08x",
+			this->frame.retry,
+			this->frame.framelength(),
 			this->frame.from(),
 			this->frame.to(),
 			this->frame.messagetypestring(),
 			this->frame.address());
-
-	ESP_LOGD(TAG, "Frame: %s", frame->hex().c_str());
+	ESP_LOGD(TAG, "Frame tx: %s", frame->hex().c_str());
 
 	for (uint8_t byte : frame->buffer) {
 		write_byte(byte^0xff);
 	}
 
-	uart_last_activity=millis();
+	now=millis();
+	uart_last_activity=now;
 
-	delete(frame);
+	if (frame->retry==0) {
+		frame->first_sent_millis=now;
+	}
+	frame->last_sent_millis=now;
+	frame->retry++;
+
+	// Did we exceed the retry time or the num retries
+	if (frame->retry > FRAME_MAX_RETRY
+			|| frame->first_sent_millis + FRAME_MAX_QUEUE_TIME < now) {
+
+		ESP_LOGD(TAG, "Frame tx: dequeuing - exceeded trys or time");
+
+		frame_tx_queue.pop_front();
+		delete(frame);
+	}
 }
 
 void BusAdapter::frame_queue(BSBFrame *frame) {
@@ -41,22 +76,39 @@ void BusAdapter::frame_queue(BSBFrame *frame) {
 }
 
 void BusAdapter::frame_process(void ) {
-	if (!this->frame.crc_valid()) {
 
-		ESP_LOGD(TAG, "Frame crc invalid - len %d", this->frame.buffersize());
-		ESP_LOGD(TAG, "Frame: %s", this->frame.hex().c_str());
-
-		this->frame.clear();
-		return;
-	}
-
-	ESP_LOGD(TAG, "Frame complete - len %d from: %02x to: %02x type: %s Address: %08x",
-			this->frame.buffersize(),
+	ESP_LOGD(TAG, "Frame rx: len %d from: %02x to: %02x type: %s Address: %08x",
+			this->frame.framelength(),
 			this->frame.from(),
 			this->frame.to(),
 			this->frame.messagetypestring(),
 			this->frame.address());
 	ESP_LOGD(TAG, "Frame: %s", this->frame.hex().c_str());
+
+	if (!this->frame.crc_valid()) {
+		ESP_LOGD(TAG, "Frame rx: crc invalid - dropping");
+
+		this->frame.clear();
+		return;
+	}
+
+	// Did we receive our own frame?
+	if (!frame_tx_queue.empty()
+		&& frame.from() == busaddress) {
+
+		/* Check if this is the frame we just sent */
+		BSBFrame *txframe=frame_tx_queue.front();
+
+		if (txframe->address() == frame.address()) {
+			ESP_LOGD(TAG, "Frame rx: Our own frame - dequeuing from tx queue - %08x", frame.address());
+
+			frame_tx_queue.pop_front();
+			delete(txframe);
+
+			this->frame.clear();
+			return;
+		}
+	}
 
 	/* Check if frame is targeted to us and is the expected last requests address */
 	if (frame.to() == busaddress) {
@@ -97,13 +149,6 @@ void BusAdapter::loop() {
 		uart_last_activity=millis();
 		return;
 	}
-
-#define UART_SILENT_MILLIS	10
-
-	uint32_t now=millis();
-	if (uart_last_activity + UART_SILENT_MILLIS > now)
-		return;
-
 	this->frame_tx();
 }
 

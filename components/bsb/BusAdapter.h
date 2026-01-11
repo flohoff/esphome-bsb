@@ -54,6 +54,9 @@ static const std::map<int,const char *> messagetypestringtable = {
 
 class BSBFrame {
 	public:
+	BSBFrame(void) : retry(0), last_sent_millis(0), first_sent_millis(0) {
+	}
+
 	void clear(void ) {
 		buffer.clear();
 	}
@@ -81,7 +84,7 @@ class BSBFrame {
 	}
 
 	uint8_t from(void ) const {
-		return this->buffer[1];
+		return this->buffer[1] & 0x7f;
 	}
 
 	void append(uint8_t c) {
@@ -182,6 +185,10 @@ class BSBFrame {
 	}
 
 	public:
+		uint8_t			retry;
+		uint32_t		first_sent_millis;
+		uint32_t		last_sent_millis;
+
 		std::vector<uint8_t>	buffer;
 
 };
