@@ -15,7 +15,8 @@ CONF_VTYPE = "vtype"
 
 BinaryRegisterVType = bsb_ns.enum("BinaryRegisterVType")
 BinaryRegisterVType = {
-        "boolonoff": BinaryRegisterVType.VT_boolonoff
+        "boolonoff": BinaryRegisterVType.VT_boolonoff,
+        "bitonoff": BinaryRegisterVType.VT_bitonoff
 }
 
 CONFIG_SCHEMA = binary_sensor.binary_sensor_schema().extend(

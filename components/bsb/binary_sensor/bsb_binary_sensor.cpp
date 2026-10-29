@@ -43,11 +43,15 @@ namespace bsb {
 		}
 
 		if (vtype == VT_boolonoff) {
-			ESP_LOGD(TAG, "Sensor VT_boolonoff %s %08x ",
-				LOG_STR_ARG(this->get_component_log_str()),
-				address);
-
+			/* 2-byte payload [enable, value] — e.g. 0x313D0571 Trinkwasserbetrieb */
 			uint8_t onoff=frame->payload(1);
+			ESP_LOGD(TAG, "VT_boolonoff payload(1)=0x%02x", onoff);
+
+			publish_state(onoff);
+		} else if (vtype == VT_bitonoff) {
+			/* 3-byte status payload [on/off, 0, bitfield] — e.g. 0x31000212 Status Trinkwasserbereitung */
+			uint8_t onoff=frame->payload(0);
+			ESP_LOGD(TAG, "VT_bitonoff payload(0)=0x%02x", onoff);
 
 			publish_state(onoff);
 		}

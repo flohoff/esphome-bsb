@@ -21,7 +21,8 @@ enum ValueType {
 	VT_unknown = 0,
 	VT_float3div64tempC = 1,
 	VT_percent = 2,
-	VT_boolonoff = 3
+	VT_boolonoff = 3,
+	VT_bitonoff = 4
 };
 
 #define BSB_STARTOFFRAME        0xdc
