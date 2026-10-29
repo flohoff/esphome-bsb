@@ -38,7 +38,11 @@ namespace bsb {
 				LOG_STR_ARG(this->get_component_log_str()),
 				address, frame->address());
 
-		if (frame->messagetype() == MT_ERROR) {
+		/* ACK/NACK/ERROR carry no value - ACK payload positions
+		   are covered by the CRC bytes */
+		if (frame->messagetype() == MT_ACK
+			|| frame->messagetype() == MT_NACK
+			|| frame->messagetype() == MT_ERROR) {
 			return;
 		}
 

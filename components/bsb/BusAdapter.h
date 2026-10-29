@@ -6,6 +6,7 @@
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/switch/switch.h"
+#include "esphome/components/select/select.h"
 #include "esphome/components/uart/uart.h"
 
 #include <stdint.h>
@@ -22,7 +23,8 @@ enum ValueType {
 	VT_float3div64tempC = 1,
 	VT_percent = 2,
 	VT_boolonoff = 3,
-	VT_bitonoff = 4
+	VT_bitonoff = 4,
+	VT_enum = 5
 };
 
 #define BSB_STARTOFFRAME        0xdc
@@ -237,6 +239,21 @@ class BinarySensor : public PollingComponent, public binary_sensor::BinarySensor
 	void receive(BSBFrame *frame);
 };
 
+class Select : public PollingComponent, public select::Select {
+	private:
+	unsigned int	address;
+	int		vtype;
+	std::vector<uint8_t>	mapping;
+	BusAdapter	*bus;
+
+	public:
+	Select(BusAdapter *bus, unsigned int address, int vtype, std::vector<uint8_t> mapping);
+	void update() override;
+	void receive(BSBFrame *frame);
+	protected:
+	void control(size_t index) override;
+};
+
 class BusAdapter : public uart::UARTDevice, public Component {
   public:
     void setup() override;
@@ -249,6 +266,7 @@ class BusAdapter : public uart::UARTDevice, public Component {
     void set_busaddress(uint8_t ba);
     void set_sensor_callback(Sensor *sensor, uint32_t address);
     void set_binarysensor_callback(BinarySensor *sensor, uint32_t address);
+    void set_select_callback(Select *sel, uint32_t address);
     uint8_t get_busaddress(void);
   private:
     BSBFrame frame;
@@ -257,6 +275,7 @@ class BusAdapter : public uart::UARTDevice, public Component {
     std::list<BSBFrame*> frame_tx_queue;
     std::map<uint32_t,Sensor *> sensorcallbackmap;
     std::map<uint32_t,BinarySensor *> binarysensorcallbackmap;
+    std::map<uint32_t,Select *> selectcallbackmap;
 };
 
 }  // namespace bsb
