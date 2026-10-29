@@ -8,6 +8,8 @@ The component speaks the BSB protocol over a serial line (4800 baud, 8 data
 bits, odd parity, 1 stop bit, payload bits inverted) and lets esphome both
 read parameters from and write parameters to the heating system.
 
+![esphome webinterface](images/esphome-webif.png)
+
 ## What it can do
 
 The component offers five esphome platforms. Every entity polls its
