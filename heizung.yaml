@@ -15,12 +15,9 @@ logger:
 
 # Enable Home Assistant API
 api:
-  encryption:
-    key: "*deleted*"
 
 ota:
   - platform: esphome
-    password: "*geheim*"
 
 # Enable Web server
 web_server:
@@ -182,9 +179,9 @@ sensor:
 
 external_components:
   - source:
-      type: local
-      path: components
-    refresh: 1s
-    components: [bsb]
+      type: git
+      url: https://github.com/flohoff/esphome-bsb
+    refresh: 5m
+    components: [BSBBusAdapter]
 
 captive_portal:
