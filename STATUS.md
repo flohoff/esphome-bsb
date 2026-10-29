@@ -143,9 +143,14 @@ letzte 2    CRC (crc16be, poly 0x1021)
 
 ## Offene Punkte / Next Steps
 
-1. **Select-Arbeit committen** (BusAdapter-Dispatch, `components/bsb/select/`,
-   ACK-Guard im BinarySensor, `VT_enum`/`VT_bitonoff`, YAML) — alles
-   verifiziert, liegt aber noch uncommitted im Arbeitsbaum.
+1. **Select/switch/number-Arbeit committen** — erledigt: Commit `cc1f5c4`
+   (die Subpackages `bsb/switch`, `bsb/select`, `bsb/number` waren nie im Git;
+   lokale Builds liefen trotzdem, aber external_components-Checkouts — z. B.
+   das ESPHome-Add-on — sahen nur sensor/binary_sensor →
+   „Platform not found: switch.bsb"). `.gitignore` um `__pycache__/` +
+   `*.pyc` ergänzt. **Offen: `git push origin`** (braucht den SSH-Agent des
+   Benutzers; nicht-interaktiv kein Publickey) und Synchronisation nach
+   `github.com/flohoff/esphome-bsb` (dort zieht das Add-on per git).
 2. Betriebsart-`optionsmap` pro Heizgerät: Werte sind jetzt explizit im YAML
    (`{Betriebsart: BSB-Wert}`); für andere Heizgeräte ggf. neu ermitteln
    (Bus-Mitschnitt: `type: Set`-Frames beim Umschalten).
