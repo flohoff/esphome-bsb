@@ -143,12 +143,15 @@ letzte 2    CRC (crc16be, poly 0x1021)
 
 ## Offene Punkte / Next Steps
 
-1. **Select-Arbeit committen** (BusAdapter-Dispatch, `components/bsb/select/`,
-   ACK-Guard im BinarySensor, `VT_enum`/`VT_bitonoff`, YAML) — alles
-   verifiziert, liegt aber noch uncommitted im Arbeitsbaum.
+1. **Select/switch/number-Arbeit committen** — erledigt: Commits bis `30d6a36`
+   inkl. `cc1f5c4` sind gepusht (Origin + GitHub-Spiegel aktuell ✓); der
+   aktuelle Arbeitsbaum (number-Plattform, `optionsmap`, number-Entities,
+   README) wartet auf den nächsten Commit + Push.
 2. Betriebsart-`optionsmap` pro Heizgerät: Werte sind jetzt explizit im YAML
    (`{Betriebsart: BSB-Wert}`); für andere Heizgeräte ggf. neu ermitteln
-   (Bus-Mitschnitt: `type: Set`-Frames beim Umschalten).
+   (Bus-Mitschnitt: `type: Set`-Frames beim Umschalten). — erledigt:
+   `optionsmap`-Muster (Vorbild `modbus_controller`-Select) implementiert,
+   im YAML dokumentiert.
 3. NACK-Fehlercodetabelle vervollständigen (bsb-lan-Quellen; beobachtet:
    05 = Parameter nicht schreibbar, 08 = ungültiger Wert/Länge).
 4. `0x2D3D0572` (Präsenztaste) und weitere Parameter nach Bedarf erschließen.
