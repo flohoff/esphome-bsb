@@ -1,0 +1,190 @@
+---
+esphome:
+  name: bsbba
+
+safe_mode:
+
+esp32:
+  board: nodemcu-32s
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "*deleted*"
+
+ota:
+  - platform: esphome
+    password: "*geheim*"
+
+# Enable Web server
+web_server:
+  port: 80
+
+wifi:
+  use_address: bsbba.fritz.box
+  ssid: "SSDI"
+  password: "WPA2-SECRET"
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Fallback Hotspot"
+    password: "MY-WPA2-SECRET"
+
+uart:
+  id: bsbuart
+  rx_pin: GPIO16
+  tx_pin: GPIO17
+  parity: ODD
+  stop_bits: 1
+  data_bits: 8
+  baud_rate: 4800
+
+bsb:
+  id: bsb0
+  uart_id: bsbuart
+  busaddress: 0xe
+
+binary_sensor:
+  - platform: bsb
+    bsb_id: bsb0
+    name: Brennerstufe 1
+    address: 0x053D09A0
+    vtype: boolonoff
+
+  - platform: bsb
+    bsb_id: bsb0
+    name: Brennerstufe 2
+    address: 0x053D09A1
+    vtype: boolonoff
+
+  - platform: bsb
+    bsb_id: bsb0
+    name: Status Trinkwasserbereitung Sensor
+    address: 0x31000212
+    vtype: bitonoff
+
+  - platform: bsb
+    bsb_id: bsb0
+    name: Trinkwasserbetrieb
+    address: 0x313D0571
+    vtype: boolonoff
+
+switch:
+  - platform: bsb
+    bsb_id: bsb0
+    name: Status Trinkwasserbereitung
+    address: 0x313D0571
+    vtype: boolonoff
+
+select:
+  - platform: bsb
+    bsb_id: bsb0
+    name: Betriebsart Heizkreis 1
+    address: 0x2D3D0574
+    vtype: enum
+    # {Betriebsart: BSB-Wert} - Reihenfolge im Dict = Reihenfolge im Dropdown.
+    # Werte ggf. pro Heizgerät anpassen (aus Live-Bus-Mitschnitt ermittelt).
+    optionsmap:
+      Schutzbetrieb: 0
+      Automatik: 1
+      Absenken: 2
+      Komfort: 3
+
+number:
+  - platform: bsb
+    bsb_id: bsb0
+    name: TWW Nennsollwert
+    address: 0x313D06B9
+    vtype: float3-div64-tempC
+    min_value: 30
+    max_value: 65
+    step: 1
+
+  - platform: bsb
+    bsb_id: bsb0
+    name: Komfortsollwert Heizkreis 1
+    address: 0x2D3D058E
+    vtype: float3-div64-tempC
+    min_value: 10
+    max_value: 30
+    step: 0.5
+
+text_sensor:
+  - platform: version
+    name: "ESPHome Version"
+
+sensor:
+  - platform: bsb
+    bsb_id: bsb0
+    name: Kesseltemperatur
+    address: 0x0D3D0519
+    vtype: float3-div64-tempC
+
+  - platform: bsb
+    bsb_id: bsb0
+    name: Aussentemperatur
+    address: 0x053D0521
+    vtype: float3-div64-tempC
+
+  - platform: bsb
+    bsb_id: bsb0
+    name: Kesselrücklauftemperatur
+    address: 0x113D051A
+    vtype: float3-div64-tempC
+
+  - platform: bsb
+    bsb_id: bsb0
+    name: Brennermodulation
+    address: 0x053D0834
+    vtype: percent
+
+  - platform: bsb
+    bsb_id: bsb0
+    name: Drehzahl HK 1
+    address: 0x213D04A7
+    vtype: percent
+
+  - platform: bsb
+    bsb_id: bsb0
+    name: Drehzahl HK 2
+    address: 0x223D04A7
+    vtype: percent
+
+  - platform: bsb
+    bsb_id: bsb0
+    name: Drehzahl Kesselpumpe
+    address: 0x053D0826
+    vtype: percent
+
+  - platform: bsb
+    bsb_id: bsb0
+    name: Drehzahl Trinkwasserpumpe
+    address: 0x253D04A4
+    vtype: percent
+
+  - platform: bsb
+    bsb_id: bsb0
+    name: Gebläsesteuerung
+    address: 0x093D0E00
+    vtype: percent
+
+  - platform: bsb
+    bsb_id: bsb0
+    name: TWW Temperatur
+    address: 0x313D052F
+    vtype: float3-div64-tempC
+
+external_components:
+  - source:
+      type: local
+      path: components
+    refresh: 1s
+    components: [bsb]
+
+captive_portal:

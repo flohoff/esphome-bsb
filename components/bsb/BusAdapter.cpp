@@ -124,8 +124,13 @@ void BusAdapter::frame_process(void ) {
 				if (cselect != selectcallbackmap.end()) {
 					cselect->second->receive(&frame);
 				} else {
-					ESP_LOGD(TAG, "Frame rx: no callback registered for address %08" PRIX32,
-							frame.address());
+					auto cnumber=numbercallbackmap.find(frame.address());
+					if (cnumber != numbercallbackmap.end()) {
+						cnumber->second->receive(&frame);
+					} else {
+						ESP_LOGD(TAG, "Frame rx: no callback registered for address %08" PRIX32,
+								frame.address());
+					}
 				}
 			}
 		}
@@ -174,6 +179,10 @@ void BusAdapter::set_binarysensor_callback(BinarySensor *sensor, uint32_t addres
 
 void BusAdapter::set_select_callback(Select *sel, uint32_t address) {
 	selectcallbackmap.insert(std::pair<uint32_t,Select *>(address, sel));
+}
+
+void BusAdapter::set_number_callback(Number *num, uint32_t address) {
+	numbercallbackmap.insert(std::pair<uint32_t,Number *>(address, num));
 }
 
 void BusAdapter::set_busaddress(uint8_t ba) {

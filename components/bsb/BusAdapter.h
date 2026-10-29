@@ -7,6 +7,7 @@
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/switch/switch.h"
 #include "esphome/components/select/select.h"
+#include "esphome/components/number/number.h"
 #include "esphome/components/uart/uart.h"
 
 #include <stdint.h>
@@ -254,6 +255,20 @@ class Select : public PollingComponent, public select::Select {
 	void control(size_t index) override;
 };
 
+class Number : public PollingComponent, public number::Number {
+	private:
+	unsigned int	address;
+	int		vtype;
+	BusAdapter	*bus;
+
+	public:
+	Number(BusAdapter *bus, unsigned int address, int vtype);
+	void update() override;
+	void receive(BSBFrame *frame);
+	protected:
+	void control(float value) override;
+};
+
 class BusAdapter : public uart::UARTDevice, public Component {
   public:
     void setup() override;
@@ -267,6 +282,7 @@ class BusAdapter : public uart::UARTDevice, public Component {
     void set_sensor_callback(Sensor *sensor, uint32_t address);
     void set_binarysensor_callback(BinarySensor *sensor, uint32_t address);
     void set_select_callback(Select *sel, uint32_t address);
+    void set_number_callback(Number *num, uint32_t address);
     uint8_t get_busaddress(void);
   private:
     BSBFrame frame;
@@ -276,6 +292,7 @@ class BusAdapter : public uart::UARTDevice, public Component {
     std::map<uint32_t,Sensor *> sensorcallbackmap;
     std::map<uint32_t,BinarySensor *> binarysensorcallbackmap;
     std::map<uint32_t,Select *> selectcallbackmap;
+    std::map<uint32_t,Number *> numbercallbackmap;
 };
 
 }  // namespace bsb
