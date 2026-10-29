@@ -8,7 +8,7 @@ namespace esphome {
 namespace bsb {
 
 	BinarySensor::BinarySensor(BusAdapter *bus, unsigned int address, int vtype)
-		: bus(bus), address(address), vtype(vtype) {
+		: address(address), vtype(vtype), bus(bus) {
 
 		bus->set_binarysensor_callback(this, address);
 
@@ -34,7 +34,7 @@ namespace bsb {
 	}
 
 	void BinarySensor::receive(BSBFrame *frame) {
-		ESP_LOGD(TAG, "BinarySensor receive %s %08x %08x",
+		ESP_LOGD(TAG, "BinarySensor receive %s %08x %08" PRIX32,
 				LOG_STR_ARG(this->get_component_log_str()),
 				address, frame->address());
 
@@ -47,7 +47,8 @@ namespace bsb {
 				LOG_STR_ARG(this->get_component_log_str()),
 				address);
 
-			uint8_t onoff=frame->payload(0)|frame->payload(1);
+			uint8_t onoff=frame->payload(1);
+
 			publish_state(onoff);
 		}
 	}

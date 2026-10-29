@@ -8,19 +8,16 @@ namespace esphome {
 namespace bsb {
 
 	Sensor::Sensor(BusAdapter *bus, unsigned int address, int vtype)
-		: bus(bus), address(address), vtype(vtype) {
+		: address(address), vtype(vtype), bus(bus) {
 
 		bus->set_sensor_callback(this, address);
 
 		if (vtype == VT_float3div64tempC) {
-			this->set_device_class("temperature");
 			this->set_state_class(sensor::STATE_CLASS_MEASUREMENT);
 			this->set_accuracy_decimals(2);
-			this->set_unit_of_measurement("\302\260C");
 		} else if (vtype == VT_percent) {
 			this->set_state_class(sensor::STATE_CLASS_MEASUREMENT);
 			this->set_accuracy_decimals(0);
-			this->set_unit_of_measurement("%");
 		}
 	};
 
@@ -53,7 +50,7 @@ namespace bsb {
 	}
 
 	void Sensor::receive(BSBFrame *frame) {
-		ESP_LOGD(TAG, "Sensor receive %s %08x %08x",
+		ESP_LOGD(TAG, "Sensor receive %s %08x %08" PRIX32,
 				LOG_STR_ARG(this->get_component_log_str()),
 				address, frame->address());
 
@@ -79,9 +76,9 @@ namespace bsb {
 			/* Make it a flow div 64 */
 			double	temp=((double) num)/64;
 
-			ESP_LOGD(TAG, "Sensor VT_float3div64tempC receive %s %08x %08x %.2f°C",
+			ESP_LOGD(TAG, "Sensor VT_float3div64tempC receive %s %08x %08" PRIX32 " %.2f°C",
 				LOG_STR_ARG(this->get_component_log_str()),
-				address, frame->address(), num, temp);
+				address, frame->address(), temp);
 
 			publish_state(temp);
 		} else if (vtype == VT_percent) {

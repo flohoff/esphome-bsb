@@ -5,6 +5,7 @@
 #include "esphome/core/log.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
+#include "esphome/components/switch/switch.h"
 #include "esphome/components/uart/uart.h"
 
 #include <stdint.h>
@@ -17,10 +18,10 @@ namespace esphome {
 namespace bsb {
 
 enum ValueType {
-	VT_unknown,
-	VT_float3div64tempC,
-	VT_percent,
-	VT_boolonoff
+	VT_unknown = 0,
+	VT_float3div64tempC = 1,
+	VT_percent = 2,
+	VT_boolonoff = 3
 };
 
 #define BSB_STARTOFFRAME        0xdc
@@ -54,7 +55,7 @@ static const std::map<int,const char *> messagetypestringtable = {
 
 class BSBFrame {
 	public:
-	BSBFrame(void) : retry(0), last_sent_millis(0), first_sent_millis(0) {
+	BSBFrame(void) : retry(0), first_sent_millis(0), last_sent_millis(0) {
 	}
 
 	void clear(void ) {
@@ -184,6 +185,10 @@ class BSBFrame {
 		return this->buffer[BSB_FRAME_PAYLOAD_OFF+pos];
 	}
 
+	void payload_set(int pos, uint8_t v) {
+		this->buffer[BSB_FRAME_PAYLOAD_OFF+pos]=v;
+	}
+
 	public:
 		uint8_t			retry;
 		uint32_t		first_sent_millis;
@@ -193,41 +198,19 @@ class BSBFrame {
 
 };
 
-class BSBRegister {
-	public:
-		uint32_t	address;
-		uint8_t		vtype;
-		uint8_t		access;
-		uint8_t		busaddress;
-		const char	*name;
-
-	enum RegisterType {
-		RT_float3div64tempC
-	};
-
-	enum RegisterAccess {
-		ro,
-		rw
-	};
-
-	void set_name(const char *n) {
-		name=n;
-	}
-	void set_address(uint32_t a) {
-		address=a;
-	}
-	void set_busaddress(uint32_t a) {
-		busaddress=a;
-	}
-	void set_vtype(uint8_t t) {
-		vtype=t;
-	}
-	void set_access(uint8_t a) {
-		access=a;
-	}
-};
-
 class BusAdapter;
+
+class Switch : public switch_::Switch, public Component {
+	private:
+	BusAdapter	*bus;
+	uint32_t	address;
+
+	public:
+	void set_busadapter(BusAdapter *bus);
+	void set_address(uint32_t address);
+	protected:
+	void write_state(bool state) override;
+};
 
 class Sensor : public PollingComponent, public sensor::Sensor {
 	private:
@@ -262,8 +245,6 @@ class BusAdapter : public uart::UARTDevice, public Component {
     void frame_queue(BSBFrame *frame);
     void frame_tx(void );
     void bus_rx(void );
-    void add_register(BSBRegister *reg);
-    void add_sensor(BSBRegister *reg);
     void set_busaddress(uint8_t ba);
     void set_sensor_callback(Sensor *sensor, uint32_t address);
     void set_binarysensor_callback(BinarySensor *sensor, uint32_t address);

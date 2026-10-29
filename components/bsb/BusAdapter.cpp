@@ -38,13 +38,13 @@ void BusAdapter::frame_tx(void ) {
 			return;
 	}
 
-	ESP_LOGD(TAG, "Frame tx: try %d - len %d from: %02x to: %02x type: %s Address: %08x",
-			this->frame.retry,
-			this->frame.framelength(),
-			this->frame.from(),
-			this->frame.to(),
-			this->frame.messagetypestring(),
-			this->frame.address());
+	ESP_LOGD(TAG, "Frame tx: try %d - len %d from: %02x to: %02x type: %s Address: %08" PRIX32,
+			frame->retry,
+			frame->framelength(),
+			frame->from(),
+			frame->to(),
+			frame->messagetypestring(),
+			frame->address());
 	ESP_LOGD(TAG, "Frame tx: %s", frame->hex().c_str());
 
 	for (uint8_t byte : frame->buffer) {
@@ -77,7 +77,7 @@ void BusAdapter::frame_queue(BSBFrame *frame) {
 
 void BusAdapter::frame_process(void ) {
 
-	ESP_LOGD(TAG, "Frame rx: len %d from: %02x to: %02x type: %s Address: %08x",
+	ESP_LOGD(TAG, "Frame rx: len %d from: %02x to: %02x type: %s Address: %08" PRIX32,
 			this->frame.framelength(),
 			this->frame.from(),
 			this->frame.to(),
@@ -100,7 +100,7 @@ void BusAdapter::frame_process(void ) {
 		BSBFrame *txframe=frame_tx_queue.front();
 
 		if (txframe->address() == frame.address()) {
-			ESP_LOGD(TAG, "Frame rx: Our own frame - dequeuing from tx queue - %08x", frame.address());
+			ESP_LOGD(TAG, "Frame rx: Our own frame - dequeuing from tx queue - %08" PRIX32, frame.address());
 
 			frame_tx_queue.pop_front();
 			delete(txframe);
@@ -110,15 +110,18 @@ void BusAdapter::frame_process(void ) {
 		}
 	}
 
-	/* Check if frame is targeted to us and is the expected last requests address */
+	/* Check if frame is targeted to us and dispatch to the registered callback */
 	if (frame.to() == busaddress) {
-		Sensor *cbsensor=sensorcallbackmap.find(frame.address())->second;
-		if (cbsensor) {
-			cbsensor->receive(&frame);
+		auto csensor=sensorcallbackmap.find(frame.address());
+		if (csensor != sensorcallbackmap.end()) {
+			csensor->second->receive(&frame);
 		} else {
-			BinarySensor *cbbinsensor=binarysensorcallbackmap.find(frame.address())->second;
-			if (cbbinsensor) {
-				cbbinsensor->receive(&frame);
+			auto cbinsensor=binarysensorcallbackmap.find(frame.address());
+			if (cbinsensor != binarysensorcallbackmap.end()) {
+				cbinsensor->second->receive(&frame);
+			} else {
+				ESP_LOGD(TAG, "Frame rx: no callback registered for address %08" PRIX32,
+						frame.address());
 			}
 		}
 	}

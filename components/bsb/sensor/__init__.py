@@ -5,10 +5,18 @@ from esphome.const import (
         DEVICE_CLASS_TEMPERATURE,
         STATE_CLASS_MEASUREMENT,
         UNIT_CELSIUS,
-        CONF_ID
+        CONF_ID,
+        CONF_UNIT_OF_MEASUREMENT
 )
 
 from .. import bsb_ns
+
+# Must match enum ValueType in BusAdapter.h
+VT_float3div64tempC = 1
+VT_percent = 2
+
+def vtype_to_unit(vtype):
+    return UNIT_CELSIUS if vtype.enum_value == VT_float3div64tempC else "%"
 
 BsbSensor = bsb_ns.class_("Sensor", sensor.Sensor, cg.Component)
 
@@ -16,10 +24,9 @@ CONF_BSB_ID = "bsb_id"
 CONF_ADDRESS = "address"
 CONF_VTYPE = "vtype"
 
-BSBRegisterVType = bsb_ns.enum("RegisterVType")
 RegisterVType = {
-        "float3-div64-tempC": BSBRegisterVType.VT_float3div64tempC,
-        "percent": BSBRegisterVType.VT_percent
+        "float3-div64-tempC": VT_float3div64tempC,
+        "percent": VT_percent
 }
 
 CONFIG_SCHEMA = sensor.sensor_schema().extend(
@@ -35,8 +42,12 @@ async def to_code(config):
     bsb = await cg.get_variable(config[CONF_BSB_ID])
 
     var = cg.new_Pvariable(
-        config[CONF_ID], bsb, config[CONF_ADDRESS], config[CONF_VTYPE]
+        config[CONF_ID],
+        bsb,
+        config[CONF_ADDRESS],
+        config[CONF_VTYPE]
     )
+    config[CONF_UNIT_OF_MEASUREMENT] = vtype_to_unit(config[CONF_VTYPE])
     await cg.register_component(var, config)
     await sensor.register_sensor(var, config)
 
