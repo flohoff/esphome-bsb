@@ -112,6 +112,11 @@ void BusAdapter::frame_process(void ) {
 
 	/* Check if frame is targeted to us and dispatch to the registered callback */
 	if (frame.to() == busaddress) {
+		/* Switch may share its address with a sensor - always notify it */
+		auto cswitch=switchcallbackmap.find(frame.address());
+		if (cswitch != switchcallbackmap.end())
+			cswitch->second->receive(&frame);
+
 		auto csensor=sensorcallbackmap.find(frame.address());
 		if (csensor != sensorcallbackmap.end()) {
 			csensor->second->receive(&frame);
@@ -175,6 +180,10 @@ void BusAdapter::set_sensor_callback(Sensor *sensor, uint32_t address) {
 
 void BusAdapter::set_binarysensor_callback(BinarySensor *sensor, uint32_t address) {
 	binarysensorcallbackmap.insert(std::pair<uint32_t,BinarySensor *>(address, sensor));
+}
+
+void BusAdapter::set_switch_callback(Switch *sw, uint32_t address) {
+	switchcallbackmap.insert(std::pair<uint32_t,Switch *>(address, sw));
 }
 
 void BusAdapter::set_select_callback(Select *sel, uint32_t address) {

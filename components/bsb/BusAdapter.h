@@ -204,7 +204,7 @@ class BSBFrame {
 
 class BusAdapter;
 
-class Switch : public switch_::Switch, public Component {
+class Switch : public PollingComponent, public switch_::Switch {
 	private:
 	BusAdapter	*bus;
 	uint32_t	address;
@@ -212,6 +212,9 @@ class Switch : public switch_::Switch, public Component {
 	public:
 	void set_busadapter(BusAdapter *bus);
 	void set_address(uint32_t address);
+	void setup() override;
+	void update() override;
+	void receive(BSBFrame *frame);
 	protected:
 	void write_state(bool state) override;
 };
@@ -281,6 +284,7 @@ class BusAdapter : public uart::UARTDevice, public Component {
     void set_busaddress(uint8_t ba);
     void set_sensor_callback(Sensor *sensor, uint32_t address);
     void set_binarysensor_callback(BinarySensor *sensor, uint32_t address);
+    void set_switch_callback(Switch *sw, uint32_t address);
     void set_select_callback(Select *sel, uint32_t address);
     void set_number_callback(Number *num, uint32_t address);
     uint8_t get_busaddress(void);
@@ -291,6 +295,7 @@ class BusAdapter : public uart::UARTDevice, public Component {
     std::list<BSBFrame*> frame_tx_queue;
     std::map<uint32_t,Sensor *> sensorcallbackmap;
     std::map<uint32_t,BinarySensor *> binarysensorcallbackmap;
+    std::map<uint32_t,Switch *> switchcallbackmap;
     std::map<uint32_t,Select *> selectcallbackmap;
     std::map<uint32_t,Number *> numbercallbackmap;
 };

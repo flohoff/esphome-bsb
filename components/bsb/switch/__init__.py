@@ -26,7 +26,7 @@ CONFIG_SCHEMA = (
           cv.Required(CONF_VTYPE): cv.enum(SwitchRegisterVType),
 	  }
   )
-  .extend(cv.COMPONENT_SCHEMA)
+  .extend(cv.polling_component_schema("60s"))
 )
 
 async def to_code(config):

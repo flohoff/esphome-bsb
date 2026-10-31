@@ -18,7 +18,7 @@ select and number platforms additionally send SET frames when controlled:
 
 - **`binary_sensor`** - read-only status bits
 - **`sensor`** - polled read-only values (temperature, percent, ...)
-- **`switch`** - boolean on/off setpoints (e.g. domestic hot water)
+- **`switch`** - boolean on/off setpoints (e.g. domestic hot water), state polled from the bus
 - **`select`** - enum values (e.g. operating mode), rendered as a dropdown
 - **`number`** - numeric setpoints (e.g. set temperatures), rendered as a slider
 
