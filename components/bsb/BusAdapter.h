@@ -138,7 +138,10 @@ class BSBFrame {
 
 
 	std::string hex(void ) {
-		return format_hex_pretty(this->buffer.data(), this->buffer.size());
+		std::vector<char> out(format_hex_pretty_size(this->buffer.size()) + 1);
+		format_hex_pretty_to(out.data(), out.size(), this->buffer.data(),
+				this->buffer.size(), '.');
+		return std::string(out.data());
 	}
 
 	void address_set(uint32_t addr) {
